@@ -1,28 +1,23 @@
-# Base image
-FROM ubuntu:latest
+FROM ubuntu:22.04
 
-# Avoid interactive prompts during package install
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install apache2 and git
 RUN apt-get update && \
-    apt-get install -y apache2 git wget unzip && \
+    apt-get install -y apache2 wget unzip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /var/www/html
 
-# Download the Minimal White template
+# Remove default Apache page
+RUN rm -rf /var/www/html/*
+
+# Download and extract template properly
 RUN wget -O template.zip \
-    "https://www.tooplate.com/zip-templates/2141_minimal_white.zip"
+    "https://www.tooplate.com/zip-templates/2141_minimal_white.zip" && \
+    unzip template.zip -d temp && \
+    cp -r temp/*/* /var/www/html/ && \
+    rm -rf temp template.zip
 
-# Extract the zip into the working directory
-RUN unzip template.zip -d . && \
-    rm template.zip
-
-# Expose HTTP port
 EXPOSE 80
 
-# Run Apache in the foreground
 CMD ["apache2ctl", "-D", "FOREGROUND"]
-
